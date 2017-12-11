@@ -1,0 +1,47 @@
+#### for building high resolution images
+---------------------------------------------------------
+jpeg(filename = "interpolation.jpg",
+     width = 8, height = 6, units = "in", 
+     quality = 75,
+     bg = "white", res = 1000, family = "", restoreConsole = TRUE,
+     type = c("windows", "cairo"))
+plot(data2$Z.mm, data2$Hardness, pch=20, col="black", xlab="Location (mm)", ylab="Hardness (VHN)", cex=1.5,cex.axis=1.5,cex.lab=1.5, ylim=c(185,210), xlim = c(2.5,16.5))
+par(new=TRUE)
+plot(x, H, pch=16, col="blue", xlab="", ylab="", xaxt="n", yaxt="n", ylim=c(185,210), xlim = c(2.5,16.5)) #### change here to change the plot
+dev.off()
+---------------------------------------------------------
+
+#### Basic example of pair plot
+  
+d <- c(1,2,3,8,9,10,11)
+pairs(data2[,d], upper.panel = panel.cor, pch = 16)
+
+#### Basic example of ggplot
+
+#### can indent multiple plots using '+' in ggplot
+
+ggplot(data2, aes(Z.mm)) + geom_point(aes(y=Hardness, colour ="Actual"), size=6) + geom_point(aes(y=H4, colour = "Predicted Value"), size=4) + scale_colour_manual("", breaks = c("Actual", "Predicted Value"), values = c("green","blue")) + xlab("Location(mm)") + ylab("Hardness Value (VHN)") + labs(title="Actual Vs Predicted Values") + theme(text = element_text(size = 24)) 
+
+#### Using plot to build multiple plots
+------------------------------------------
+plot(pplot$Location.Z, pplot$Actual, pch=16, col="blue", xlab="Z(mm)", ylab="Hardness (VHN)", cex=1.5)
+legend(4,205, c("Actual","Predicted"), pch=c(16,20), bty="o", col=c("blue","red"))
+par(new=TRUE)
+plot(pplot$Location.Z, pplot$Predicted, pch=20, col="red", xlab="", ylab="", xaxt="n", yaxt="n", cex=1.25)
+-------------------------------------------
+  
+colnames(data) <- c("X.mm", "Z.mm", "Hardness", "Al.wt", "Zn.wt", "Mg.wt", "Cu.wt", "Al.at", "Mg.at", "Zn.at", "Cu.at")
+fit <- with(data, lm(Hardness ~ I(Z.mm^2)))
+summary(fit)
+
+#### for generating plots with interpolated lines
+-----------------------------------------------
+png(filename = "comparison.png",
+      width = 8, height = 6, units = "in", pointsize = 12,
+      bg = "white",  res = 500,
+      type = c("cairo", "cairo-png", "Xlib", "quartz"))
+smoothingSpline = smooth.spline(test$Uf,test$E, spar=0.35)
+plot(test$Uf,test$E, xlab = "Fuel Utilization (%)", ylab = "Efficiency")
+lines(smoothingSpline)
+dev.off()
+----------------------------------------------

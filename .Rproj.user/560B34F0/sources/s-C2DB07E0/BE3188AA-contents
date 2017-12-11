@@ -1,0 +1,94 @@
+---
+title: 'CWRU IMMI Analysis: Data Book'
+author: "Amit K Verma, Roger H French, Jennifer L W Carter"
+date: "December 6, 2017"
+output:
+  html_document:
+    font-size: 12em
+    self_contained: yes
+    toc: yes
+  beamer_presentation:
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document: default
+---
+
+### Reference Coordinate System
+
+  - Each File (whether it is Hardness data, EDS Data, or EBSD Data) has its own local coordinate system defined by its origin and step size (different/same for two axes)
+  - (disp.ref.z, disp.ref.x): Represents the location of Origin with respect to reference co-ordinate system 
+  - (dz, dx): Represents the step size of the local(of the file under study) co-ordinate system
+  - For combining different Data Files/Sets - we use our reference co-ordinate system defined by a fixed origin or marked at the same position across different samples (each sample has the same dimensions)
+  - Using reference, positions of origins, and step size for each data file we can calculate the co-ordinates in reference system. Once we know the coordinates of all data points in reference coordinate system, we can merge into a single data frame
+  - All distance measurements in reference co-ordinate system are in millimeters (mm), unless specified for a particular variable 
+  
+### Hardness.csv
+
+  - disp.ref.z: location of Origin on z-axis with respect to reference co-ordinate system, in mm
+  - disp.ref.x: location of Origin on x-axis with respect to reference co-ordinate system, in mm 
+  - dz : step size on z-axis, in mm 
+  - dx : step size on x-axis, in mm
+  - Location.Z : local co-ordinate z-axis, each value is a whole number
+  - Location.X : local co-ordinate x-axis, each value is a whole number
+  - Location.Y : local co-ordinate y-axis, each value is a whole number, and single value represents a single sample 
+  - DateTime : Date & Time of the measurements
+  - SpecimenID : Needs to assign a generic sample ID
+  - HardnessScale : represents the Hardness Scale, VHN is Vickers Hardness Number
+  - LoadApplied : Load Applied for indentation in gram force(gf) 
+  - Diagonal.1 : Diagonal Length of Indent, in micrometers 
+  - Diagonal.2 : Second Diagonal Length of Indent, in micrometers 
+  - Hardness : Hardness Value in VHN
+
+### EDS.csv
+
+  - disp.ref.z: location of Origin on z-axis with respect to reference co-ordinate system, in mm
+  - disp.ref.x: location of Origin on x-axis with respect to reference co-ordinate system, in mm 
+  - dz : step size on z-axis, in mm 
+  - dx : step size on x-axis, in mm
+  - Location.Z : local co-ordinate z-axis, each value is a whole number
+  - Location.X : local co-ordinate x-axis, each value is a whole number
+  - Location.Y : local co-ordinate y-axis, each value is a whole number, and single value represents a single sample 
+  - DateTime : Date & Time of the measurements
+  - SpecimenID : Needs to assign a generic sample ID
+  - BeamCurrent : Beam Current in nano Amperes (nA)
+  - AccVoltage : Accelerating Voltage in Kilo Volts (kV)
+  - WD : Working Distance, in mm
+  - AcquireTime : Time taken to acquire spectra, in seconds
+  - DeadTime : Dead time during the collection of spectra, in % of the total time
+  - Magnification : Magnification of microscope at the time of spectra
+  - Num.Channels : Number of Channels in the spectra
+  - Al% : Amount of Aluminum, in atomic percentage (at%), at the location
+  - Cu% : Amount of Copper, in atomic percentage (at%), at the location
+  - Mg% : Amount of Magnesium, in atomic percentage (at%), at the location
+  - Zn% : Amount of Zinc, in atomic percentage (at%), at the location
+  - others : other remaining elements, in atomic percentage (at%)
+
+### EBSD.csv
+
+  - disp.ref.z: location of Origin on z-axis with respect to reference co-ordinate system, in mm
+  - disp.ref.x: location of Origin on x-axis with respect to reference co-ordinate system, in mm 
+  - dz : step size on z-axis, in mm 
+  - dx : step size on x-axis, in mm
+  - Location.Z : local co-ordinate z-axis, each value is a whole number
+  - Location.X : local co-ordinate x-axis, each value is a whole number
+  - Location.Y : local co-ordinate y-axis, each value is a whole number, and single value represents a single sample 
+  - DateTime : Date & Time of the measurements
+  - SpecimenID : Needs to assign a generic sample ID
+  - BeamCurrent : Beam Current in nano Amperes (nA)
+  - AccVoltage : Accelerating Voltage in Kilo Volts (kV)
+  - WD : Working Distance, in mm
+  - AcquireTime : Time taken to acquire spectra, in seconds
+  - DeadTime : Dead time during the collection of spectra, in % of the total time
+  - Magnification : Magnification of microscope at the time of spectra
+  - Euler1 : Euler Angle (units?)
+  - Euler2 : Euler Angle
+  - Euler3 : Euler Angle
+  - SchmidFactor : Schmid Factor
+  - PhaseID : Phase present at given Location
+  - GrainSize : Grain Size, in micrometers, averaged over an area
+  - Hist.Major.Axis : Grain Size histogram Major Axis
+  - Hist.Minor.Axis : Grain Size histogram Minor Axis
+  - Grain.Size.ASTM : Grain Size ASTM number
+  - TaylorFactor : Taylor Factor calculated for a particular orientation over an area 
+

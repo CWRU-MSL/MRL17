@@ -1,0 +1,408 @@
+---
+title: "CWRU ARO-Project ANN Comparison"
+author: "Amit K Verma, Steven R. Claves, Roger H. French, Jennifer L W Carter"
+date: "January 27, 2017"
+output:
+#  html_document:
+#    font-size: 10em
+#    self_contained: yes
+#    toc: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+---
+
+<!--
+# Script Name: 1701-ARO-ANN-Comparison.Rmd
+# Purpose: Comparison of Artifial Neural Network with Linear Regression
+# Authors: Amit K. Verma
+-->
+
+License: [CC-A-NC-SA-4.0](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+```{r,echo=FALSE}
+# function to add p values and R values to the upper half of pair plots 
+panel.cor <- function(x, y, digits = 2, cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  # correlation coefficient
+  r <- cor(x,y)
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste("r= ", txt, sep = "")
+  text(0.5, 0.6, txt)
+ 
+  # p-value calculation
+  p <- cor.test(x, y)$p.value
+  txt2 <- format(c(p, 0.123456789), digits = digits)[1]
+  txt2 <- paste("p= ", txt2, sep = "")
+  if(p<0.01) txt2 <- paste("p= ", "<0.01", sep = "")
+  text(0.5, 0.4, txt2)
+}
+```
+
+
+```{r, echo=FALSE}
+# reading Hardness Data of Sample1
+setwd("../data/Hardness")
+df <- read.csv("Sample1_Hardness.csv", header = TRUE, stringsAsFactors=FALSE)
+df$Location.Z <- df$disp.ref.z + df$dz*df$Location.Z
+df$Location.X <- df$disp.ref.x + df$dx*df$Location.X
+drops <- c("disp.ref.z","disp.ref.x", "dz", "dx")
+strength <- df[,!(names(df) %in% drops)]
+```
+
+
+```{r, echo=FALSE}
+# reading Hardness Data of Sample3
+setwd("../data/Hardness")
+df <- read.csv("Sample3_Hardness.csv", header = TRUE, stringsAsFactors=FALSE)
+df$Location.Z <- df$disp.ref.z + df$dz*df$Location.Z
+df$Location.X <- df$disp.ref.x + df$dx*df$Location.X
+drops <- c("disp.ref.z","disp.ref.x", "dz", "dx")
+strength2 <- df[,!(names(df) %in% drops)]
+```
+
+
+```{r, echo=FALSE}
+# reading Composition Data of Sample1
+setwd("../data/EDS")
+df <- read.csv("Sample1_EDS2.csv", header = TRUE, stringsAsFactors=FALSE)
+df$Location.Z <- df$disp.ref.z + df$dz*df$Location.Z
+df$Location.X <- df$disp.ref.x + df$dx*df$Location.X
+drops <- c("disp.ref.z","disp.ref.x", "dz", "dx")
+composition <- df[,!(names(df) %in% drops)]
+l <- length(composition$Al)
+sum <- 0
+
+# 'for' loop to normalize the results to 100%
+
+for (i in 1:l)
+  {sum <- composition$Al[i] + composition$Cu[i] + composition$Mg[i] + composition$Zn[i]
+   composition$Al[i] <- (composition$Al[i]/sum)*100
+   composition$Cu[i] <- (composition$Cu[i]/sum)*100
+   composition$Mg[i] <- (composition$Mg[i]/sum)*100
+   composition$Zn[i] <- (composition$Zn[i]/sum)*100}
+
+```
+
+ 
+```{r, echo=FALSE}
+# reading Composition Data of Sample3
+
+setwd("../data/EDS")
+df <- read.csv("Sample3_EDS.csv", header = TRUE, stringsAsFactors=FALSE)
+df$Location.Z <- df$disp.ref.z + df$dz*df$Location.Z
+df$Location.X <- df$disp.ref.x + df$dx*df$Location.X
+drops <- c("disp.ref.z","disp.ref.x", "dz", "dx")
+composition2 <- df[,!(names(df) %in% drops)]
+l <- length(composition2$Al)
+sum <- 0
+
+# 'for' loop to normalize the results to 100%
+
+for (i in 1:l)
+  {sum <- composition2$Al[i] + composition2$Cu[i] + composition2$Mg[i] + composition2$Zn[i]
+   composition2$Al[i] <- (composition2$Al[i]/sum)*100
+   composition2$Cu[i] <- (composition2$Cu[i]/sum)*100
+   composition2$Mg[i] <- (composition2$Mg[i]/sum)*100
+   composition2$Zn[i] <- (composition2$Zn[i]/sum)*100}
+
+```
+
+
+## Training Data - Used for generating correlations
+
+  - r = correlation coefficients 
+  - p = p values for the correlation test
+
+```{r, echo=FALSE,warning=FALSE,fig.height=6,fig.width=6}
+
+df <- merge(strength, composition, by = c("Location.X","Location.Z"))
+# Combining two data-sets to visualize together
+
+data <- subset(df, select = c(Location.X, Location.Z, Hardness, Al, Zn, Mg, Cu))
+
+# Changing to atomic percentage
+
+N <- 6.022e23
+l <- length(data$Al)
+columns <- c("Alat","Mgat","Znat", "Cuat")
+data[,columns] <- NA
+
+for (i in 1:l)
+  {data$Alat[i] <- data$Al[i]*N/27
+  data$Znat[i] <- data$Zn[i]*N/65.4
+  data$Mgat[i] <- data$Mg[i]*N/24.3
+  data$Cuat[i] <- data$Cu[i]*N/63.5}
+
+
+for (i in 1:l)
+  {sum <- data$Alat[i] + data$Cuat[i] + data$Mgat[i] + data$Znat[i]
+   data$Alat[i] <- (data$Alat[i]/sum)*100
+   data$Cuat[i] <- (data$Cuat[i]/sum)*100
+   data$Mgat[i] <- (data$Mgat[i]/sum)*100
+   data$Znat[i] <- (data$Znat[i]/sum)*100}
+
+# Changing column names
+
+colnames(data) <- c("X.mm", "Z.mm", "Hardness", "Al.wt", "Zn.wt", "Mg.wt", "Cu.wt", "Al.at", "Mg.at", "Zn.at", "Cu.at")
+
+
+# pair plot of training data-set
+a <- c(1,2,3,8,9,10,11)
+temp <- data[,a]
+colnames(temp) <- c("X(mm)", "Z(mm)", "Hardness", "Al(at%)", "Mg(at%)", "Zn(at%)", "Cu(at%)")
+pairs(temp, upper.panel = panel.cor, pch = 16)
+```
+
+### Defining Regions 
+
+- Region 1
+    - $Mg_{32}Zn_{31.9}Al_{17.1}$ as in precipitate
+
+```{r,echo=FALSE}
+Mg <- data$Mg.at
+Zn <- data$Zn.at
+df = data.frame(Mg,Zn) 
+
+for(i in 1:length(df$Mg)){
+  if(df$Mg[i] > df$Zn[i]){
+    df$MgZn[i] <- df$Zn[i]
+    df$Mgexcess[i] <- df$Mg[i] - df$Zn[i]
+    df$Znexcess[i] <- 0
+  }
+  if(df$Mg[i] < df$Zn[i]){
+    df$MgZn[i] <- df$Mg[i]
+    df$Mgexcess[i] <- 0
+    df$Znexcess[i] <- df$Zn[i] - df$Mg[i]
+  }
+}
+
+df$Hardness <-  data$Hardness
+```
+
+- Region 2
+    - $Mg_Zn_{2} as in precipitate
+
+```{r,echo=FALSE}
+df2 = data.frame(Mg,Zn) 
+
+for(i in 1:length(df2$Mg)){
+  if(df2$Mg[i] > df2$Zn[i]/2){
+    df2$MgZn2[i] <- df2$Zn[i]/2
+    df2$Mgexcess[i] <- df2$Mg[i] - df2$Zn[i]/2
+    df2$Znexcess[i] <- 0
+  }
+  if(df2$Mg[i] < df2$Zn[i]/2){
+    df2$MgZn2[i] <- df2$Mg[i]
+    df2$Mgexcess[i] <- 0
+    df2$Znexcess[i] <- df2$Zn[i] - 2*df2$Mg[i]
+  }
+}
+
+df2$Hardness <-  data$Hardness
+df2$Z <-  data$Z.mm
+
+```
+
+## Linear Models 
+
+ - H(x,z) = f (2 variables)
+ - H(x,z) = f (Zn, Mg)
+ - Using sgSEM
+     - H(z) = a x sqrt(Mgexcess) + c
+     - or, H(z) = b x exp(MgZn2) + c
+
+```{r,results="hide"}
+#combining different forms of equations and checking p-values 
+
+fit1 <- with(df2, lm(Hardness ~ I(Mgexcess^0.5)))
+summary(fit1) # adj-R2: 0.5978
+
+fit2 <- with(df2, lm(Hardness ~ exp(MgZn2)))
+summary(fit2) # adj-R2: 0.5909
+```
+
+## Test Data
+
+  - Different sample was taken with different data density to check the above correlation, with training:test ratio of 66:34.
+  - Data was taken at 3 different Z-Location as compared to data at 6 different Z-Location for building the correlation, but 22 times at each Z as to confirm the variance interval, and avoid outliers
+
+```{r, echo=FALSE,fig.width=6,fig.height=6}
+df <- merge(strength2, composition2, by = c("Location.X","Location.Z"))
+df <- df[-c(3, 60), ]
+data2 <- subset(df, select = c(Location.X, Location.Z, Hardness, Al, Zn, Mg, Cu))
+
+# Changing to atomic percentage
+
+N <- 6.022e23
+l <- length(data2$Al)
+columns <- c("Alat","Mgat","Znat", "Cuat")
+data2[,columns] <- NA
+
+for (i in 1:l)
+  {data2$Alat[i] <- data2$Al[i]*N/27
+  data2$Znat[i] <- data2$Zn[i]*N/65.4
+  data2$Mgat[i] <- data2$Mg[i]*N/24.3
+  data2$Cuat[i] <- data2$Cu[i]*N/63.5}
+
+
+for (i in 1:l)
+  {sum <- data2$Alat[i] + data2$Cuat[i] + data2$Mgat[i] + data2$Znat[i]
+   data2$Alat[i] <- (data2$Alat[i]/sum)*100
+   data2$Cuat[i] <- (data2$Cuat[i]/sum)*100
+   data2$Mgat[i] <- (data2$Mgat[i]/sum)*100
+   data2$Znat[i] <- (data2$Znat[i]/sum)*100}
+
+colnames(data2) <- c("X.mm", "Z.mm", "Hardness", "Al.wt", "Zn.wt", "Mg.wt", "Cu.wt", "Al.at", "Mg.at", "Zn.at", "Cu.at")
+
+pairs(data2[,c(1,2,8:11,3)], upper.panel = panel.cor, pch = 16)
+```
+
+## Synthesize/Write-up Results
+
+  - (Predicted Value) calculated from H(z) = exp(MgZn2) or sqrt(Mgexcess)
+
+```{r,echo=FALSE,warning=FALSE, fig.width=8,fig.height=8}
+df3 = data.frame(data2$Mg.at,data2$Zn.at,data2$Hardness,data2$Z.mm) 
+colnames(df3) <- c("Mg", "Zn", "Hardness","Z")
+
+for(i in 1:length(df3$Mg)){
+  if(df3$Mg[i] > df3$Zn[i]/2){
+    df3$MgZn2[i] <- df3$Zn[i]/2
+    df3$Mgexcess[i] <- df3$Mg[i] - df3$Zn[i]/2
+    df3$Znexcess[i] <- 0
+  }
+  if(df3$Mg[i] < df3$Zn[i]/2){
+    df3$MgZn2[i] <- df3$Mg[i]
+    df3$Mgexcess[i] <- 0
+    df3$Znexcess[i] <- df3$Zn[i] - 2*df3$Mg[i]
+  }
+}
+
+columns <- c("Hppt","Hss")
+df3[,columns] <- NA
+
+# calculating predicted values using equations coming from 'lm'
+
+for(i in 1:length(df3$MgZn2)){
+  df3$Hppt[i] <- 169.6494 +  4.7194*exp(df3$MgZn2[i])
+  df3$Hss[i] <- 247.74 - 33.124*(sqrt(df3$Mgexcess[i]))}
+```
+
+- Actual vs Predicted Values for MgZn2 Model
+- Legend at bottom right shows the root mean square value.
+
+```{r,echo=FALSE,warning=FALSE, fig.width=6,fig.height=6}
+MSE.lm.ppt <- sum((df3$Hppt - df3$Hardness)^2)/nrow(df3)
+MSE.lm.ppt <- format(round(MSE.lm.ppt, 2), nsmall = 2)
+
+plot(df3$Hardness,df3$Hppt,col='red',main='Real vs predicted lm (MgZn2)',pch=18, cex=1.5)
+abline(0,1,lwd=2)
+legend('bottomright',legend=MSE.lm.ppt,pch=18,col='red', bty='n')
+```
+
+- Actual vs Predicted Values for Mg-excess Model
+- Legend at bottom right shows the root mean square value.
+
+```{r,echo=FALSE,warning=FALSE, fig.width=6,fig.height=6}
+MSE.lm.ss <- sum((df3$Hss - df3$Hardness)^2)/nrow(df3)
+MSE.lm.ss <- format(round(MSE.lm.ss, 2), nsmall = 2)
+
+plot(df3$Hardness,df3$Hss,col='green',main='Real vs predicted lm (Mg-excess)',pch=18, cex=1.5)
+abline(0,1,lwd=2)
+legend('bottomright',legend=MSE.lm.ss,pch=18,col='red', bty='n')
+```
+
+## Neural Net Fit
+
+```{r,warning=FALSE, fig.width=8,fig.height=6}
+
+training <- df2
+training <- training[,c(1,2,6)]
+
+test <- df3
+test <- test[,c(1,2,3)]
+
+data <- rbind(training,test)
+
+maxs <- apply(data, 2, max) 
+mins <- apply(data, 2, min)
+
+scaled <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
+
+NNtrain <- scaled[c(1:72),]
+NNtest <- scaled[-c(1:72),]
+
+library(neuralnet)
+n <- names(NNtrain)
+f <- as.formula(paste("Hardness ~", paste(n[!n %in% "Hardness"], collapse = " + ")))
+
+nn <- neuralnet(f,data=NNtrain,hidden=c(2),rep = 1, err.fct = "sse", act.fct = "logistic", linear.output = TRUE)
+plot(nn,rep = "best")
+```
+
+- Actual vs Predicted Values for NN Model
+- Legend at bottom right shows the root mean square value.
+
+```{r,warning=FALSE, fig.width=6,fig.height=6}
+pr.nn <- compute(nn,NNtest[,c(1,2)])
+
+pr.nn_ <- pr.nn$net.result*(max(data$Hardness)-min(data$Hardness))+min(data$Hardness)
+test.r <- (NNtest$Hardness)*(max(data$Hardness)-min(data$Hardness))+min(data$Hardness)
+
+MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(NNtest)
+MSE.nn <- format(round(MSE.nn, 2), nsmall = 2)
+
+plot(test$Hardness,pr.nn_,col='blue',main='Real vs predicted NN',pch=16,cex=1.5)
+abline(0,1,lwd=2)
+legend('bottomright',legend=MSE.nn,pch=16,col='blue', bty='n')
+```
+
+## Different ANN Fit with more variables
+
+```{r,warning=FALSE, fig.width=8,fig.height=6}
+
+train <- df2
+train <- train[,c(7,1:4,6)]
+
+test <- df3
+test <- test[,c(4,1,2,5,6,3)]
+
+data <- rbind(train,test)
+
+maxs <- apply(data, 2, max) 
+mins <- apply(data, 2, min)
+
+scaled <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
+
+NNtrain <- scaled[c(1:72),]
+NNtest <- scaled[-c(1:72),]
+
+library(neuralnet)
+n <- names(NNtrain)
+f <- as.formula(paste("Hardness ~", paste(n[!n %in% "Hardness"], collapse = " + ")))
+nn <- neuralnet(f,data=NNtrain,hidden=c(2),linear.output=T)
+plot(nn,rep = "best")
+```
+
+- Actual vs Predicted Values for NN Model
+- Legend at bottom right shows the root mean square value.
+
+```{r,warning=FALSE, fig.width=6,fig.height=6}
+pr.nn <- compute(nn,NNtest[,c(1:5)])
+
+pr.nn_ <- pr.nn$net.result*(max(data$Hardness)-min(data$Hardness))+min(data$Hardness)
+test.r <- (NNtest$Hardness)*(max(data$Hardness)-min(data$Hardness))+min(data$Hardness)
+
+MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(NNtest)
+MSE.nn <- format(round(MSE.nn, 2), nsmall = 2)
+
+plot(test$Hardness,pr.nn_,col='blue',main='Real vs predicted NN',pch=16,cex=1.5)
+abline(0,1,lwd=2)
+legend('bottomright',legend=MSE.nn,pch=16,col='blue', bty='n')
+```
+
+- Doesn't improve the predictability
