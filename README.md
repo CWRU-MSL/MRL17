@@ -12,4 +12,4 @@
 
 Repository for the data and codes associated with the scientific research funded by Army Research Office Short Term Innovative
 Research program: W911NF-14-0549. 
-The repositroy is associated with the publication of the work in Integrating Materials and Manufacturing Innovation (IMMI) by Springer DOI:
+The repositroy is associated with the publication of the work in Integrating Materials and Manufacturing Innovation (IMMI) by Springer DOI: 10.1007/s40192-017-0104-5
